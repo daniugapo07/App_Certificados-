@@ -44,7 +44,7 @@ def _limpiar_texto(val: Any) -> str:
     return str(val).strip()
 
 
-def leer_maestro_excel(ruta_archivo: Any = "insumos/Maestro_Estudiantes.xlsx") -> List[Dict[str, Any]]:
+def leer_maestro_excel(ruta_archivo: Any = "INSUMOS/Maestro_Estudiantes.xlsx") -> List[Dict[str, Any]]:
     """
     Lee y valida la hoja 'Estudiantes' de Maestro_Estudiantes.xlsx.
     Retorna una lista de diccionarios listos para persistir.
@@ -89,7 +89,7 @@ def leer_maestro_excel(ruta_archivo: Any = "insumos/Maestro_Estudiantes.xlsx") -
     return estudiantes
 
 
-def leer_evaluaciones_excel(ruta_archivo: Any = "insumos/Registro_Evaluaciones.xlsx") -> List[Dict[str, Any]]:
+def leer_evaluaciones_excel(ruta_archivo: Any = "INSUMOS/Registro_Evaluaciones.xlsx") -> List[Dict[str, Any]]:
     """
     Lee y valida la hoja 'Evaluaciones' de Registro_Evaluaciones.xlsx.
     Retorna una lista de diccionarios listos para persistir.
@@ -153,8 +153,8 @@ def leer_evaluaciones_excel(ruta_archivo: Any = "insumos/Registro_Evaluaciones.x
 
 
 def cargar_archivos_y_persistir(
-    ruta_maestro: str | Path = "insumos/Maestro_Estudiantes.xlsx",
-    ruta_evaluaciones: str | Path = "insumos/Registro_Evaluaciones.xlsx",
+    ruta_maestro: str | Path = "INSUMOS/Maestro_Estudiantes.xlsx",
+    ruta_evaluaciones: str | Path = "INSUMOS/Registro_Evaluaciones.xlsx",
 ) -> Dict[str, int]:
     """
     Lee los dos archivos Excel, valida la estructura y persiste los datos

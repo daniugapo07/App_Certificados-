@@ -13,7 +13,7 @@ from controllers.certificados import certificados_bp
 # LADRILLO: variable (carpeta donde vive app.py, sin importar desde donde se ejecute)
 BASE_DIR = Path(__file__).resolve().parent
 # Trabajar siempre desde la raiz del proyecto: asi las rutas relativas
-# como "insumos/..." y "views/" funcionan aunque se arranque desde otra carpeta
+# como "INSUMOS/..." y "views/" funcionan aunque se arranque desde otra carpeta
 os.chdir(BASE_DIR)
 
 # Configuración de la aplicación Flask
@@ -24,6 +24,18 @@ app.secret_key = os.getenv("SECRET_KEY", "academia_certificados_2026")
 # Registro de controladores
 app.register_blueprint(tablero_bp)
 app.register_blueprint(certificados_bp)
+
+# Arranque en produccion (Vercel): si la BD esta vacia, crear tablas y
+# cargar los Excel de INSUMOS/. En local no hace nada porque ya hay datos.
+# LADRILLO: condicional con proteccion (si falla, la app igual arranca)
+try:
+    from models.datos import crear_tablas, contar_estudiantes
+    crear_tablas()
+    if contar_estudiantes() == 0:
+        from services.carga_excel import cargar_archivos_y_persistir
+        cargar_archivos_y_persistir()
+except Exception:
+    pass
 
 if __name__ == "__main__":
     # Levanta el servidor en el puerto 5000

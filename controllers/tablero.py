@@ -42,12 +42,12 @@ def cargar():
         fuente_m = (
             archivo_maestro
             if (archivo_maestro and archivo_maestro.filename)
-            else "insumos/Maestro_Estudiantes.xlsx"
+            else "INSUMOS/Maestro_Estudiantes.xlsx"
         )
         fuente_e = (
             archivo_evaluaciones
             if (archivo_evaluaciones and archivo_evaluaciones.filename)
-            else "insumos/Registro_Evaluaciones.xlsx"
+            else "INSUMOS/Registro_Evaluaciones.xlsx"
         )
 
         try:

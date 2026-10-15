@@ -12,7 +12,11 @@ from dotenv import load_dotenv
 # Carga variables de entorno desde .env
 load_dotenv()
 
-DB_FILE_SQLITE = Path(__file__).resolve().parent.parent / "certificados.db"
+# LADRILLO: condicional (en Vercel el disco es de solo lectura salvo /tmp)
+if os.getenv("VERCEL"):
+    DB_FILE_SQLITE = Path("/tmp/certificados.db")
+else:
+    DB_FILE_SQLITE = Path(__file__).resolve().parent.parent / "certificados.db"
 
 
 def es_postgres() -> bool:
