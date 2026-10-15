@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<!-- views/tablero.html : EL SALON (solo muestra datos, no calcula nada) -->
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Academia Horizonte — Tablero de Certificados</title>
+<style>
+  /* Paleta institucional: azul marino #14213D y dorado #B8923D */
+  body { font-family: Arial, sans-serif; margin: 0; background: #f4f4f4; }
+  header { background: #14213D; color: white; padding: 20px; text-align: center; border-bottom: 5px solid #B8923D; }
+  header h1 { margin: 0; }
+  header p { margin: 5px 0 0; color: #B8923D; }
+  .contadores { display: flex; gap: 15px; padding: 20px; justify-content: center; }
+  .tarjeta { background: white; border-radius: 8px; padding: 15px 30px; text-align: center; box-shadow: 0 2px 5px #ccc; }
+  .tarjeta .numero { font-size: 36px; font-weight: bold; }
+  .tarjeta small { color: #666; }
+  .verde { color: green; } .azul { color: #1565c0; } .rojo { color: red; }
+  main { padding: 0 20px 30px; }
+  table { width: 100%; border-collapse: collapse; background: white; margin-top: 10px; }
+  th { background: #14213D; color: white; padding: 10px; }
+  td { padding: 8px; border-bottom: 1px solid #ddd; text-align: center; }
+  /* Color por tipo de certificado: verde Aprobacion, azul Participacion, rojo Sin certificado */
+  .fila-Aprobación { background: #e8f5e9; color: #1b5e20; font-weight: bold; }
+  .fila-Participación { background: #e3f2fd; color: #0d47a1; font-weight: bold; }
+  .fila-Sin-certificado { background: #ffebee; color: #b71c1c; font-weight: bold; }
+  .fila-Inconsistencia { background: #fff8e1; color: #7a5c00; font-weight: bold; }
+  .alerta { background: #fff3cd; border-left: 5px solid #B8923D; padding: 10px 15px; margin: 8px 0; }
+  select { padding: 8px; font-size: 15px; }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>Academia Horizonte</h1>
+  <p>Tablero de Certificados por Cohorte</p>
+</header>
+
+<!-- Contadores: cuantos de cada tipo (vienen calculados de la Cocina) -->
+<div class="contadores">
+  <div class="tarjeta"><div class="numero verde">{{ contadores.aprobacion }}</div><small>Aprobación</small></div>
+  <div class="tarjeta"><div class="numero azul">{{ contadores.participacion }}</div><small>Participación</small></div>
+  <div class="tarjeta"><div class="numero rojo">{{ contadores.sin_certificado }}</div><small>Sin certificado</small></div>
+</div>
+
+<main>
+  <!-- Filtro por programa (los dos programas del maestro) -->
+  <label for="filtro"><strong>Filtrar por programa:</strong></label>
+  <select id="filtro" onchange="filtrar()">
+    <option value="">— Todos —</option>
+    {% for p in estudiantes | map(attribute='programa') | unique | list %}
+    <option value="{{ p }}">{{ p }}</option>
+    {% endfor %}
+  </select>
+
+  <!-- Tabla de resultados: nombre, programa, modulos, promedio, asistencia y certificado -->
+  <table id="tabla">
+    <tr>
+      <th>Nombre</th><th>Programa</th><th>Módulos</th>
+      <th>Promedio</th><th>Asistencia %</th><th>Certificado</th>
+    </tr>
+    {% for e in estudiantes %}
+    <tr data-programa="{{ e.programa }}">
+      <td>{{ e.nombre_completo }}</td>
+      <td>{{ e.programa }}</td>
+      <td>{{ e.modulos if e.modulos is not none else '—' }}</td>
+      <td>{{ e.promedio_nota if e.promedio_nota is not none else '—' }}</td>
+      <td>{{ e.promedio_asistencia if e.promedio_asistencia is not none else '—' }}</td>
+      <td class="fila-{{ e.tipo_certificado | replace(' ', '-') }}">{{ e.tipo_certificado }}</td>
+    </tr>
+    {% endfor %}
+  </table>
+
+  <!-- Seccion aparte de inconsistencias (las 3 detectadas, no se certifican) -->
+  <h2>⚠ Inconsistencias ({{ inconsistencias | length }})</h2>
+  {% for i in inconsistencias %}
+  <div class="alerta"><strong>{{ i.identificacion }}</strong> — {{ i.nombre_completo }}
+    ({{ i.programa }}): {{ i.motivo }}</div>
+  {% endfor %}
+</main>
+
+<script>
+// Filtro sencillo: muestra solo las filas del programa elegido
+function filtrar() {
+  var elegido = document.getElementById('filtro').value;
+  var filas = document.querySelectorAll('#tabla tr[data-programa]');
+  for (var k = 0; k < filas.length; k++) {
+    var prog = filas[k].getAttribute('data-programa');
+    filas[k].style.display = (elegido === '' || prog === elegido) ? '' : 'none';
+  }
+}
+</script>
+
+</body>
+</html>
