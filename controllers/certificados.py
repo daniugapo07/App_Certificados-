@@ -7,6 +7,7 @@ No contiene lógica de cálculo: delega en models y services.
 
 import io
 from flask import Blueprint, abort, make_response, request, send_file
+from controllers.sesion import requiere_login
 from models.certificados import obtener_detalle_estudiante, procesar_certificados
 from services.generador_pdf import generar_certificado_pdf, generar_zip_certificados
 
@@ -14,6 +15,7 @@ certificados_bp = Blueprint("certificados", __name__)
 
 
 @certificados_bp.route("/certificado/<identificacion>/<path:programa>")
+@requiere_login
 def ver_certificado(identificacion: str, programa: str):
     """
     Genera y sirve el certificado individual en PDF para un estudiante y programa.
@@ -47,6 +49,7 @@ def ver_certificado(identificacion: str, programa: str):
 
 
 @certificados_bp.route("/descargar-todos")
+@requiere_login
 def descargar_todos():
     """
     Genera un archivo ZIP con todos los certificados emitibles

@@ -10,6 +10,12 @@
   header { background: #14213D; color: white; padding: 20px; text-align: center; border-bottom: 5px solid #B8923D; }
   header h1 { margin: 0; }
   header p { margin: 5px 0 0; color: #B8923D; }
+  /* Barra del usuario conectado: correo, rol y botón Salir */
+  .barra-usuario { display: flex; justify-content: flex-end; align-items: center; gap: 10px; font-size: 14px; margin-bottom: 10px; }
+  .barra-usuario .etiqueta-rol { background: #1565c0; color: white; padding: 2px 8px; border-radius: 10px; font-size: 12px; text-transform: uppercase; }
+  .barra-usuario .etiqueta-rol.rol-admin { background: #B8923D; }
+  .barra-usuario .btn-salir { background: white; color: #14213D; padding: 4px 12px; border-radius: 4px; text-decoration: none; font-weight: bold; }
+  .barra-usuario .btn-salir:hover { background: #B8923D; color: white; }
   .contadores { display: flex; gap: 15px; padding: 20px; justify-content: center; }
   .tarjeta { background: white; border-radius: 8px; padding: 15px 30px; text-align: center; box-shadow: 0 2px 5px #ccc; }
   .tarjeta .numero { font-size: 36px; font-weight: bold; }
@@ -25,6 +31,29 @@
   .fila-Sin-certificado { background: #ffebee; color: #b71c1c; font-weight: bold; }
   .fila-Inconsistencia { background: #fff8e1; color: #7a5c00; font-weight: bold; }
   .alerta { background: #fff3cd; border-left: 5px solid #B8923D; padding: 10px 15px; margin: 8px 0; }
+  /* Mensajes flash: verde si la carga salió bien, rojo si falló */
+  .flash { padding: 10px 15px; border-radius: 4px; margin: 10px 0; font-size: 14px; }
+  .flash-success { background: #e8f5e9; color: #1b5e20; border-left: 5px solid #1b5e20; }
+  .flash-danger { background: #ffebee; color: #b71c1c; border-left: 5px solid #b71c1c; }
+  /* Panel de administrador para procesar los Excel */
+  .panel-admin { background: white; border-left: 5px solid #14213D; border-radius: 8px; padding: 15px 20px; margin: 15px 0; box-shadow: 0 2px 5px #ccc; }
+  .panel-admin h2 { color: #14213D; margin: 0 0 8px; font-size: 18px; }
+  .panel-admin .origen { color: #555; font-size: 14px; margin: 0 0 12px; }
+  .panel-admin .campos { display: flex; gap: 20px; flex-wrap: wrap; }
+  .panel-admin .campo { flex: 1; min-width: 240px; }
+  .panel-admin label { display: block; color: #14213D; font-weight: bold; margin-bottom: 5px; font-size: 14px; }
+  .panel-admin input[type="file"] { width: 100%; box-sizing: border-box; padding: 8px; background: #f9f9f9; border: 1px dashed #B8923D; border-radius: 4px; font-size: 13px; }
+  .panel-admin .acciones { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; margin-top: 15px; }
+  .panel-admin button { padding: 10px 16px; border: none; border-radius: 6px; font-size: 14px; font-weight: bold; cursor: pointer; }
+  .btn-procesar { background: #14213D; color: white; }
+  .btn-procesar:hover { background: #24365e; }
+  .btn-excel { background: #B8923D; color: white; }
+  .btn-excel:hover { background: #9a7a32; }
+  .btn-fabrica { color: #14213D; font-weight: bold; font-size: 14px; }
+  .btn-fabrica:hover { color: #B8923D; }
+  /* Avisos del panel */
+  .aviso-verde { background: #e8f5e9; color: #1b5e20; border-left: 5px solid #1b5e20; padding: 10px 15px; border-radius: 4px; margin: 10px 0; font-size: 14px; }
+  .aviso-rojo { background: #ffebee; color: #b71c1c; border-left: 5px solid #b71c1c; padding: 10px 15px; border-radius: 4px; margin: 10px 0; font-size: 14px; }
   select { padding: 8px; font-size: 15px; }
   /* Botones de descarga */
   .barra { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; }
@@ -41,6 +70,8 @@
 <body>
 
 <header>
+  <!-- Correo y rol de quien entró, con el botón Salir -->
+  {% include "_barra_usuario.html" %}
   <h1>Academia Horizonte</h1>
   <p>Tablero de Certificados por Cohorte</p>
 </header>
@@ -53,6 +84,67 @@
 </div>
 
 <main>
+  <!-- Mensajes de resultado (por ejemplo, después de cargar un Excel) -->
+  {% with mensajes = get_flashed_messages(with_categories=true) %}
+    {% for categoria, mensaje in mensajes %}
+    <div class="flash flash-{{ categoria }}">{{ mensaje }}</div>
+    {% endfor %}
+  {% endwith %}
+
+  <!-- Aviso verde: los datos subidos no se guardan en ningún lado -->
+  {% if aviso_datos_subidos %}
+  <div class="aviso-verde">
+    <strong>Estás viendo datos subidos en esta pantalla.</strong>
+    Estos resultados viven solo aquí: no se guardaron y, al recargar la app,
+    volverás a los datos de fábrica, porque todavía no hay dónde guardarlos.
+  </div>
+  {% endif %}
+
+  <!-- Aviso rojo: el archivo faltó, no era Excel o pesaba demasiado -->
+  {% if error_carga %}
+  <div class="aviso-rojo">
+    <strong>No se pudo procesar:</strong> {{ error_carga }}
+  </div>
+  {% endif %}
+
+  {% if session.get('rol') == 'admin' %}
+  <!-- PANEL DE ADMINISTRADOR: solo se muestra al rol admin -->
+  <section class="panel-admin" id="panel-admin">
+    <h2>Panel de administrador — Procesar Excel</h2>
+    <!-- Origen de los datos que se están viendo en este momento -->
+    <p class="origen">
+      Origen de los datos en pantalla: <strong>{{ origen }}</strong>
+    </p>
+
+    <!-- enctype es obligatorio para enviar archivos por el formulario -->
+    <form method="post" action="{{ url_for('tablero.cargar') }}" enctype="multipart/form-data">
+      <div class="campos">
+        <div class="campo">
+          <label for="maestro">Maestro de estudiantes (.xlsx)</label>
+          <input type="file" id="maestro" name="maestro" accept=".xlsx" required>
+        </div>
+        <div class="campo">
+          <label for="evaluaciones">Registro de evaluaciones (.xlsx)</label>
+          <input type="file" id="evaluaciones" name="evaluaciones" accept=".xlsx" required>
+        </div>
+      </div>
+
+      <!-- Los dos botones van a la misma ruta y se distinguen por "accion" -->
+      <div class="acciones">
+        <button type="submit" name="accion" value="ver" class="btn-procesar">
+          Procesar y ver en pantalla
+        </button>
+        <button type="submit" name="accion" value="excel" class="btn-excel">
+          Procesar y descargar Excel
+        </button>
+        <a class="btn-fabrica" href="{{ url_for('tablero.descargar_fabrica') }}">
+          ⬇ Descargar resultados de fábrica
+        </a>
+      </div>
+    </form>
+  </section>
+  {% endif %}
+
   <!-- Filtro por programa y descarga masiva -->
   <div class="barra">
     <div>
@@ -64,10 +156,12 @@
         {% endfor %}
       </select>
     </div>
-    <!-- Descarga todos los certificados elegibles en un solo ZIP -->
-    <a class="btn btn-dorado" href="{{ url_for('certificados.descargar_todos') }}">
-      ⬇ Descargar todos ({{ elegibles }} en .zip)
-    </a>
+    <div>
+      <!-- Descarga todos los certificados elegibles en un solo ZIP -->
+      <a class="btn btn-dorado" href="{{ url_for('certificados.descargar_todos') }}">
+        ⬇ Descargar todos ({{ elegibles }} en .zip)
+      </a>
+    </div>
   </div>
 
   <!-- Tabla de resultados: nombre, programa, modulos, promedio, asistencia y certificado -->
@@ -99,12 +193,14 @@
     {% endfor %}
   </table>
 
-  <!-- Seccion aparte de inconsistencias (las 3 detectadas, no se certifican) -->
+  {% if session.get('rol') == 'admin' %}
+  <!-- Seccion aparte de inconsistencias: solo la ve el administrador -->
   <h2>⚠ Inconsistencias ({{ inconsistencias | length }})</h2>
   {% for i in inconsistencias %}
   <div class="alerta"><strong>{{ i.identificacion }}</strong> — {{ i.nombre_completo }}
     ({{ i.programa }}): {{ i.motivo }}</div>
   {% endfor %}
+  {% endif %}
 </main>
 
 <script>

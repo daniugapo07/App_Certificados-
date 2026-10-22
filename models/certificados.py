@@ -37,9 +37,15 @@ def determinar_tipo_certificado(promedio_nota: float, promedio_asistencia: float
         return TIPO_SIN_CERTIFICADO
 
 
-def procesar_certificados() -> Dict[str, Any]:
+def procesar_certificados(
+    estudiantes: Optional[List[Dict[str, Any]]] = None,
+    evaluaciones: Optional[List[Dict[str, Any]]] = None,
+) -> Dict[str, Any]:
     """
-    Aplica las reglas del negocio R1 a R6 sobre los datos de la base de datos:
+    Aplica las reglas del negocio R1 a R6 sobre los datos recibidos.
+    Si no se le pasan datos, los lee de la base de datos (datos de fábrica).
+    Así el mismo cálculo sirve para el tablero normal y para los Excel
+    subidos en memoria, sin duplicar la lógica.
     - R1: Agrupa evaluaciones por identificacion + programa.
     - R2: Calcula promedios redondeados a 2 decimales.
     - R3: Aprobación (promedio >= 70 y asistencia >= 80).
@@ -52,8 +58,11 @@ def procesar_certificados() -> Dict[str, Any]:
     - inconsistencias: lista de registros con anomalías detectadas
     - estudiantes_tablero: lista consolidada de estudiantes para la vista de tabla
     """
-    estudiantes = obtener_estudiantes()
-    evaluaciones = obtener_evaluaciones()
+    # LADRILLO: condicional (sin datos recibidos, se consulta la base de datos)
+    if estudiantes is None:
+        estudiantes = obtener_estudiantes()
+    if evaluaciones is None:
+        evaluaciones = obtener_evaluaciones()
 
     # R1: Agrupar evaluaciones por (identificacion, programa)
     evals_por_clave = defaultdict(list)

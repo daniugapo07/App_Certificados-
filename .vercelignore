@@ -1,0 +1,10 @@
+# Archivos que NO deben subirse a Vercel.
+# Se usan solo en local o no hacen falta en producción.
+
+.venv/
+__pycache__/
+.pytest_cache/
+tests/
+*.db
+.env
+*.log

@@ -7,6 +7,7 @@ Los archivos en insumos/ son de solo lectura.
 from pathlib import Path
 from typing import Any, Dict, List
 import pandas as pd
+from models.certificados import procesar_certificados
 from models.datos import guardar_estudiantes, guardar_evaluaciones
 
 COLUMNAS_MAESTRO = [
@@ -170,3 +171,37 @@ def cargar_archivos_y_persistir(
         "estudiantes_cargados": cant_est,
         "evaluaciones_cargadas": cant_eva,
     }
+
+
+def leer_datos_excel(
+    archivo_maestro: Any = None,
+    archivo_evaluaciones: Any = None,
+) -> tuple[List[Dict[str, Any]], List[Dict[str, Any]]]:
+    """
+    Lee los dos Excel y devuelve (estudiantes, evaluaciones).
+    Si no se pasa un archivo, lee el de la carpeta INSUMOS/ (datos de fábrica).
+    Acepta rutas en disco o archivos en memoria (BytesIO).
+    """
+    # LADRILLO: condicional (sin archivo subido, usamos el Excel de fábrica)
+    estudiantes = leer_maestro_excel(
+        archivo_maestro if archivo_maestro is not None else "INSUMOS/Maestro_Estudiantes.xlsx"
+    )
+    evaluaciones = leer_evaluaciones_excel(
+        archivo_evaluaciones
+        if archivo_evaluaciones is not None
+        else "INSUMOS/Registro_Evaluaciones.xlsx"
+    )
+    return estudiantes, evaluaciones
+
+
+def procesar_excel(
+    archivo_maestro: Any = None,
+    archivo_evaluaciones: Any = None,
+) -> Dict[str, Any]:
+    """
+    Lee los Excel (subidos o de INSUMOS) y aplica las reglas del negocio,
+    SIN guardar nada en la base de datos. Devuelve el mismo diccionario
+    que procesar_certificados(), reutilizando esa función.
+    """
+    estudiantes, evaluaciones = leer_datos_excel(archivo_maestro, archivo_evaluaciones)
+    return procesar_certificados(estudiantes=estudiantes, evaluaciones=evaluaciones)

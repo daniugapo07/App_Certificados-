@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<!-- views/cargar.html : carga de los dos Excel (solo administradores) -->
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Academia Horizonte — Cargar datos</title>
+<style>
+  /* Paleta institucional: azul marino #14213D y dorado #B8923D */
+  body { font-family: Arial, sans-serif; margin: 0; background: #f4f4f4; }
+  header { background: #14213D; color: white; padding: 20px; text-align: center; border-bottom: 5px solid #B8923D; }
+  header h1 { margin: 0; }
+  header p { margin: 5px 0 0; color: #B8923D; }
+  /* Barra del usuario conectado: correo, rol y botón Salir */
+  .barra-usuario { display: flex; justify-content: flex-end; align-items: center; gap: 10px; font-size: 14px; margin-bottom: 10px; }
+  .barra-usuario .etiqueta-rol { background: #1565c0; color: white; padding: 2px 8px; border-radius: 10px; font-size: 12px; text-transform: uppercase; }
+  .barra-usuario .etiqueta-rol.rol-admin { background: #B8923D; }
+  .barra-usuario .btn-salir { background: white; color: #14213D; padding: 4px 12px; border-radius: 4px; text-decoration: none; font-weight: bold; }
+  .barra-usuario .btn-salir:hover { background: #B8923D; color: white; }
+  main { max-width: 620px; margin: 30px auto; padding: 0 20px; }
+  .caja { background: white; border-top: 5px solid #B8923D; border-radius: 8px; box-shadow: 0 2px 10px #ccc; padding: 25px; }
+  h2 { color: #14213D; margin: 0 0 10px; }
+  .ayuda { color: #666; font-size: 14px; margin: 0 0 20px; }
+  label { display: block; color: #14213D; font-weight: bold; margin: 15px 0 5px; font-size: 14px; }
+  input[type="file"] { width: 100%; box-sizing: border-box; padding: 10px; background: #f9f9f9; border: 1px dashed #B8923D; border-radius: 4px; font-size: 14px; }
+  button { margin-top: 20px; width: 100%; padding: 12px; background: #14213D; color: white; border: none; border-radius: 4px; font-size: 16px; font-weight: bold; cursor: pointer; }
+  button:hover { background: #24365e; }
+  /* Mensajes flash: verde si la carga salió bien, rojo si falló */
+  .flash { padding: 10px 15px; border-radius: 4px; margin-bottom: 15px; font-size: 14px; }
+  .flash-success { background: #e8f5e9; color: #1b5e20; border-left: 5px solid #1b5e20; }
+  .flash-danger { background: #ffebee; color: #b71c1c; border-left: 5px solid #b71c1c; }
+  .volver { display: inline-block; margin-top: 20px; color: #14213D; font-weight: bold; text-decoration: none; }
+  .volver:hover { color: #B8923D; }
+</style>
+</head>
+<body>
+
+<header>
+  <!-- Correo y rol de quien entró, con el botón Salir -->
+  {% include "_barra_usuario.html" %}
+  <h1>Academia Horizonte</h1>
+  <p>Cargar datos de estudiantes y evaluaciones</p>
+</header>
+
+<main>
+  <div class="caja">
+    <h2>Subir archivos Excel</h2>
+    <p class="ayuda">
+      Si adjuntas los dos archivos, se reemplazan los datos de la base.
+      Si dejas un campo vacío, se vuelve a leer el archivo que está en
+      <code>INSUMOS/</code>.
+    </p>
+
+    <!-- Mensajes de resultado que envía el controlador con flash() -->
+    {% with mensajes = get_flashed_messages(with_categories=true) %}
+      {% for categoria, mensaje in mensajes %}
+      <div class="flash flash-{{ categoria }}">{{ mensaje }}</div>
+      {% endfor %}
+    {% endwith %}
+
+    <!-- enctype es obligatorio para poder enviar archivos -->
+    <form method="post" action="{{ url_for('tablero.cargar') }}" enctype="multipart/form-data">
+      <label for="maestro">Maestro de estudiantes (.xlsx)</label>
+      <input type="file" id="maestro" name="maestro" accept=".xlsx">
+
+      <label for="evaluaciones">Registro de evaluaciones (.xlsx)</label>
+      <input type="file" id="evaluaciones" name="evaluaciones" accept=".xlsx">
+
+      <button type="submit">Cargar y recalcular</button>
+    </form>
+
+    <a class="volver" href="{{ url_for('tablero.index') }}">← Volver al tablero</a>
+  </div>
+</main>
+
+</body>
+</html>

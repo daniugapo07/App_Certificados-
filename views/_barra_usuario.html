@@ -1,0 +1,6 @@
+<!-- views/_barra_usuario.html : correo, rol y botón Salir (se incluye en los encabezados) -->
+<div class="barra-usuario">
+  <span>👤 {{ session.get('correo', '') }}</span>
+  <span class="etiqueta-rol rol-{{ session.get('rol', '') }}">{{ session.get('rol', '') }}</span>
+  <a class="btn-salir" href="{{ url_for('sesion.salir') }}">Salir</a>
+</div>
