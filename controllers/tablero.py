@@ -17,11 +17,14 @@ def index():
     y delega la visualización a la plantilla de Jinja en views/.
     """
     datos = procesar_certificados()
+    # LADRILLO: variable (cuantos certificados se pueden emitir, para mostrarlo en el boton)
+    elegibles = sum(1 for e in datos["estudiantes_tablero"] if e.get("emite_certificado"))
     return render_template(
         "tablero.html",
         contadores=datos["contadores"],
         inconsistencias=datos["inconsistencias"],
         estudiantes=datos["estudiantes_tablero"],
+        elegibles=elegibles,
     )
 
 

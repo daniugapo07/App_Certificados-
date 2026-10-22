@@ -26,6 +26,16 @@
   .fila-Inconsistencia { background: #fff8e1; color: #7a5c00; font-weight: bold; }
   .alerta { background: #fff3cd; border-left: 5px solid #B8923D; padding: 10px 15px; margin: 8px 0; }
   select { padding: 8px; font-size: 15px; }
+  /* Botones de descarga */
+  .barra { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; }
+  .btn { display: inline-block; padding: 10px 18px; border-radius: 6px; text-decoration: none; font-weight: bold; font-size: 15px; }
+  .btn-dorado { background: #B8923D; color: white; }
+  .btn-dorado:hover { background: #9a7a32; }
+  .btn-mini { padding: 5px 12px; font-size: 13px; background: #14213D; color: white; border-radius: 4px; }
+  .btn-mini:hover { background: #24365e; }
+  .btn-descarga { background: #B8923D; margin-left: 4px; }
+  .btn-descarga:hover { background: #9a7a32; }
+  .no-emite { color: #999; font-size: 13px; }
 </style>
 </head>
 <body>
@@ -43,20 +53,28 @@
 </div>
 
 <main>
-  <!-- Filtro por programa (los dos programas del maestro) -->
-  <label for="filtro"><strong>Filtrar por programa:</strong></label>
-  <select id="filtro" onchange="filtrar()">
-    <option value="">— Todos —</option>
-    {% for p in estudiantes | map(attribute='programa') | unique | list %}
-    <option value="{{ p }}">{{ p }}</option>
-    {% endfor %}
-  </select>
+  <!-- Filtro por programa y descarga masiva -->
+  <div class="barra">
+    <div>
+      <label for="filtro"><strong>Filtrar por programa:</strong></label>
+      <select id="filtro" onchange="filtrar()">
+        <option value="">— Todos —</option>
+        {% for p in estudiantes | map(attribute='programa') | unique | list %}
+        <option value="{{ p }}">{{ p }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <!-- Descarga todos los certificados elegibles en un solo ZIP -->
+    <a class="btn btn-dorado" href="{{ url_for('certificados.descargar_todos') }}">
+      ⬇ Descargar todos ({{ elegibles }} en .zip)
+    </a>
+  </div>
 
   <!-- Tabla de resultados: nombre, programa, modulos, promedio, asistencia y certificado -->
   <table id="tabla">
     <tr>
       <th>Nombre</th><th>Programa</th><th>Módulos</th>
-      <th>Promedio</th><th>Asistencia %</th><th>Certificado</th>
+      <th>Promedio</th><th>Asistencia %</th><th>Certificado</th><th>Descargar</th>
     </tr>
     {% for e in estudiantes %}
     <tr data-programa="{{ e.programa }}">
@@ -66,6 +84,17 @@
       <td>{{ e.promedio_nota if e.promedio_nota is not none else '—' }}</td>
       <td>{{ e.promedio_asistencia if e.promedio_asistencia is not none else '—' }}</td>
       <td class="fila-{{ e.tipo_certificado | replace(' ', '-') }}">{{ e.tipo_certificado }}</td>
+      <td>
+        {% if e.emite_certificado %}
+        <!-- Dos opciones por estudiante: ver el PDF o descargarlo como archivo -->
+        <a class="btn-mini" target="_blank" rel="noopener noreferrer"
+           href="{{ url_for('certificados.ver_certificado', identificacion=e.identificacion, programa=e.programa) }}">Ver</a>
+        <a class="btn-mini btn-descarga"
+           href="{{ url_for('certificados.ver_certificado', identificacion=e.identificacion, programa=e.programa, descargar='1') }}">⬇ PDF</a>
+        {% else %}
+        <span class="no-emite">No aplica</span>
+        {% endif %}
+      </td>
     </tr>
     {% endfor %}
   </table>

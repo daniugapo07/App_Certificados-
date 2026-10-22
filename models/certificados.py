@@ -183,17 +183,12 @@ def obtener_detalle_estudiante(identificacion: str, programa: str = "") -> Optio
     ident_limpia = str(identificacion).strip()
     prog_limpio = str(programa).strip().lower()
 
-    if prog_limpio:
-        for est in resumen["estudiantes_tablero"]:
-            if (
-                est["identificacion"] == ident_limpia
-                and est["programa"].strip().lower() == prog_limpio
-            ):
-                return est
-
-    # Búsqueda por identificación como respaldo
+    # R1: el certificado es por identificacion + programa, asi que ambos deben coincidir
     for est in resumen["estudiantes_tablero"]:
-        if est["identificacion"] == ident_limpia:
+        if (
+            est["identificacion"] == ident_limpia
+            and est["programa"].strip().lower() == prog_limpio
+        ):
             return est
 
     return None
